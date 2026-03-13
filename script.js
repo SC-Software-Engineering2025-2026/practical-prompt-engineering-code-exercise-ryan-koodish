@@ -26,6 +26,44 @@ function setRating(promptId, rating) {
   }
 }
 
+// Add notes functionality
+function addNote(promptId) {
+  const noteContent = prompt("Enter your note:");
+  if (noteContent) {
+    const prompts = JSON.parse(localStorage.getItem("prompts")) || [];
+    const prompt = prompts.find((p) => p.id === promptId);
+    if (prompt) {
+      prompt.notes = prompt.notes || [];
+      prompt.notes.push({ id: `note-${Date.now()}`, content: noteContent });
+      localStorage.setItem("prompts", JSON.stringify(prompts));
+      loadPrompts();
+    }
+  }
+}
+
+function deleteNote(promptId, noteId) {
+  const prompts = JSON.parse(localStorage.getItem("prompts")) || [];
+  const prompt = prompts.find((p) => p.id === promptId);
+  if (prompt) {
+    prompt.notes = prompt.notes.filter((note) => note.id !== noteId);
+    localStorage.setItem("prompts", JSON.stringify(prompts));
+    loadPrompts();
+  }
+}
+
+function renderNotes(notes, promptId) {
+  return notes
+    .map(
+      (note) => `
+        <div class="note">
+          <p>${note.content}</p>
+          <button onclick="deleteNote('${promptId}', '${note.id}')">Delete Note</button>
+        </div>
+      `
+    )
+    .join("");
+}
+
 // Load prompts from localStorage
 function loadPrompts() {
   const prompts = JSON.parse(localStorage.getItem("prompts")) || [];
@@ -37,6 +75,11 @@ function loadPrompts() {
             <h3>${prompt.title}</h3>
             <p>${prompt.content.substring(0, 50)}...</p>
             ${renderStars(prompt.rating || 0, prompt.id)}
+            <button onclick="addNote('${prompt.id}')">Add Note</button>
+            <div class="notes">${renderNotes(
+              prompt.notes || [],
+              prompt.id
+            )}</div>
             <button onclick="deletePrompt(${index})">Delete</button>
         `;
     promptsContainer.appendChild(card);
