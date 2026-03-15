@@ -64,6 +64,63 @@ function renderNotes(notes, promptId) {
     .join("");
 }
 
+// Metadata tracking system
+function trackModel(modelName, content) {
+  if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
+    throw new Error(
+      "Invalid model name. Must be a non-empty string with a maximum of 100 characters."
+    );
+  }
+
+  const createdAt = new Date().toISOString();
+  const tokenEstimate = estimateTokens(content, false);
+
+  return {
+    model: modelName,
+    createdAt,
+    updatedAt: createdAt,
+    tokenEstimate,
+  };
+}
+
+function updateTimestamps(metadata) {
+  const updatedAt = new Date().toISOString();
+  if (new Date(updatedAt) < new Date(metadata.createdAt)) {
+    throw new Error(
+      "Updated timestamp cannot be earlier than created timestamp."
+    );
+  }
+  metadata.updatedAt = updatedAt;
+  return metadata;
+}
+
+function estimateTokens(text, isCode) {
+  const wordCount = text.split(/\s+/).length;
+  const charCount = text.length;
+  let min = 0.75 * wordCount;
+  let max = 0.25 * charCount;
+
+  if (isCode) {
+    min *= 1.3;
+    max *= 1.3;
+  }
+
+  const confidence = max < 1000 ? "high" : max <= 5000 ? "medium" : "low";
+
+  return { min: Math.round(min), max: Math.round(max), confidence };
+}
+
+// Example usage
+function addMetadataToPrompt(prompt) {
+  try {
+    const metadata = trackModel(prompt.model, prompt.content);
+    prompt.metadata = metadata;
+    return prompt;
+  } catch (error) {
+    console.error("Error tracking metadata:", error.message);
+  }
+}
+
 // Load prompts from localStorage
 function loadPrompts() {
   const prompts = JSON.parse(localStorage.getItem("prompts")) || [];

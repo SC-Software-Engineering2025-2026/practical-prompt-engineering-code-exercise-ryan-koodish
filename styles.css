@@ -147,3 +147,25 @@ button:hover {
 .note button:hover {
   background-color: #a71d2a;
 }
+
+/* Metadata display styles */
+.metadata {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #eef;
+  border: 1px solid #ccd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.metadata .confidence-high {
+  color: green;
+}
+
+.metadata .confidence-medium {
+  color: orange;
+}
+
+.metadata .confidence-low {
+  color: red;
+}
